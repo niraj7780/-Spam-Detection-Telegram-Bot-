@@ -6,23 +6,25 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 
+# ✅ TOKEN
 TOKEN = os.getenv("TOKEN")
 
-# ✅ Fake server (Render free)
+# ✅ Web server (IMPORTANT for Render FREE)
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
         self.end_headers()
-        self.wfile.write(b"Spam Bot Running")
+        self.wfile.write(b"Bot Running")
 
 def run_server():
     port = int(os.environ.get("PORT", 10000))
     server = HTTPServer(("0.0.0.0", port), Handler)
     server.serve_forever()
 
+# start server thread
 threading.Thread(target=run_server).start()
 
-# ✅ Button UI
+# ✅ BUTTON MENU
 def menu():
     keyboard = [
         ["🛡 Check Message", "🔗 Check Link"],
@@ -30,14 +32,14 @@ def menu():
     ]
     return ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
-# ✅ Start
+# ✅ START
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "🛡 Niraj Spam Shield Bot\n\nChoose option 👇",
         reply_markup=menu()
     )
 
-# ✅ AI Logic
+# ✅ AI LOGIC
 SPAM_WORDS = [
     "win", "free", "prize", "lottery", "click", "urgent",
     "verify", "account", "offer", "money", "reward"
@@ -63,7 +65,7 @@ def analyze(text):
             if bad in link:
                 score += 2
 
-    # result
+    # decision
     if score >= 3:
         return "🚨 SPAM", "High risk! Do not click ❌"
     elif score >= 1:
@@ -71,35 +73,28 @@ def analyze(text):
     else:
         return "✅ Safe", "No threat ✅"
 
-# ✅ Handle buttons + input
-user_mode = {}
-
+# ✅ HANDLE INPUT + BUTTONS
 async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
-    user_id = update.message.from_user.id
 
-    # button selection
     if text in ["🛡 Check Message", "🔗 Check Link", "📱 Scan SMS"]:
-        user_mode[user_id] = "check"
-        await update.message.reply_text("Send your text or link ✅")
+        await update.message.reply_text("Send your message or link ✅")
         return
 
     elif text == "ℹ About":
         await update.message.reply_text(
             "👨‍💻 Niraj Charpe\n"
             "🛡 Spam Detection Bot\n"
-            "🤖 AI based scanner"
+            "🤖 Smart AI Scanner"
         )
         return
 
-    # process input
+    # analyze message
     result, info = analyze(text)
 
-    await update.message.reply_text(
-        f"{result}\n\n{info}"
-    )
+    await update.message.reply_text(f"{result}\n\n{info}")
 
-# ✅ Main
+# ✅ MAIN
 def main():
     app = ApplicationBuilder().token(TOKEN).build()
 
